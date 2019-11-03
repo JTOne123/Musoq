@@ -15,6 +15,7 @@ using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -262,6 +263,21 @@ namespace Musoq.Evaluator.Visitors
             VisitAccessMethod(node,
                 (token, node1, exargs, arg3, alias, canSkipInjectSource) =>
                     new AccessMethodNode(token, node1 as ArgsListNode, exargs, canSkipInjectSource, arg3, alias));
+        }
+
+        public void Visit(WindowAccessMethodNode node)
+        {
+            var participans = new List<FieldNode>();
+            for (int i = 0; i < node.PartitionParticipants.Length; ++i)
+            {
+                participans.Add((FieldNode)Nodes.Pop());
+            }
+
+            VisitWindowAccessMethod(node.Method,
+                (token, node1, exargs, arg3, alias, canSkipInjectSource) =>
+                    new AccessMethodNode(token, node1 as ArgsListNode, exargs, canSkipInjectSource, arg3, alias));
+
+            Nodes.Push(new WindowAccessMethodNode((AccessMethodNode)Nodes.Pop(), participans.ToArray()));
         }
 
         public void Visit(AccessRawIdentifierNode node)
@@ -958,6 +974,39 @@ namespace Musoq.Evaluator.Visitors
             {
                 accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method, alias, canSkipInjectSource);
             }
+
+            AddAssembly(method.DeclaringType.Assembly);
+            AddAssembly(method.ReturnType.Assembly);
+
+            node.ChangeMethod(method);
+
+            Nodes.Push(accessMethod);
+        }
+
+        private void VisitWindowAccessMethod(
+            AccessMethodNode node,
+            Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+        {
+            var args = node.ArgsCount > 0 ? Nodes.Pop() as ArgsListNode : new ArgsListNode(new Node[0]);
+
+            var windowArgs = new List<Type> { typeof(Window), typeof(string) };
+            windowArgs.AddRange(args.Args.Select(f => f.ReturnType));
+
+            var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
+
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+            var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+
+            if (!schemaTablePair.Schema.TryResolveWindowMethod(node.Name, windowArgs.ToArray(), out var method))
+            {
+                var types = args.Args.Length > 0
+                    ? args.Args.Select(f => f.ReturnType.ToString()).Aggregate((a, b) => a + ", " + b)
+                    : string.Empty;
+
+                throw new UnresolvableMethodException($"{node.Name}({types}) cannot be resolved.");
+            }
+
+             var accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method, alias, false);
 
             AddAssembly(method.DeclaringType.Assembly);
             AddAssembly(method.ReturnType.Assembly);

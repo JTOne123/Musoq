@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace Musoq.Plugins
 {
@@ -24,6 +22,7 @@ namespace Musoq.Plugins
 #endif
 
         public Group Parent { get; }
+
         public int Count { get; private set; }
 
         private IDictionary<string, object> Values { get; } = new Dictionary<string, object>();

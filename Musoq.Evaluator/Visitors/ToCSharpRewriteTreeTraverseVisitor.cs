@@ -65,6 +65,17 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(WindowAccessMethodNode node)
+        {
+            foreach (var participant in node.PartitionParticipants)
+            {
+                participant.Accept(this);
+            }
+
+            node.Method.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(AccessRawIdentifierNode node)
         {
             node.Accept(_visitor);

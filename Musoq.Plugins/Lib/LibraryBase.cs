@@ -49,5 +49,11 @@ namespace Musoq.Plugins
         {
             return obj?.GetType().FullName;
         }
+
+        [WindowMethod]
+        public DeferredInt Rank(Window window, string name)
+        {
+            return null;
+        }
     }
 }

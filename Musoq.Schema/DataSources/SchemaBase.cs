@@ -123,6 +123,16 @@ namespace Musoq.Schema.DataSources
             return false;
         }
 
+        public bool TryResolveWindowMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+        {
+            var founded = _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+
+            if (founded)
+                return methodInfo.GetCustomAttribute<WindowMethodAttribute>() != null;
+
+            return false;
+        }
+
         public bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo)
         {
             return _aggregator.TryResolveMethod(method, parameters, out methodInfo);

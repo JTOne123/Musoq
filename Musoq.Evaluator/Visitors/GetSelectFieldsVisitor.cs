@@ -141,6 +141,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(WindowAccessMethodNode node)
+        {
+        }
+
         public void Visit(AccessRawIdentifierNode node)
         {
         }

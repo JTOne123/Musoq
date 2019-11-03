@@ -8,6 +8,19 @@ using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Visitors
 {
+    public class RewriteFieldWithGroupMethodCallTraverseVisitor : CloneTraverseVisitor
+    {
+        public RewriteFieldWithGroupMethodCallTraverseVisitor(IExpressionVisitor visitor) 
+            : base(visitor)
+        {
+        }
+
+        public override void Visit(WindowAccessMethodNode node)
+        {
+            node.Accept(Visitor);
+        }
+    }
+
     public class RewriteFieldWithGroupMethodCall : CloneQueryVisitor
     {
         private readonly FieldNode[] _fields;
@@ -27,8 +40,12 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessColumnNode node)
         {
-            Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty,
-                node.ReturnType, TextSpan.Empty));
+            Nodes.Push(
+                new AccessColumnNode(
+                    NamingHelper.ToColumnName(node.Alias, node.Name), 
+                    string.Empty,
+                    node.ReturnType, 
+                    TextSpan.Empty));
         }
 
         public override void Visit(DotNode node)
@@ -74,6 +91,11 @@ namespace Musoq.Evaluator.Visitors
         public override void Visit(AccessCallChainNode node)
         {
             Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
+        }
+
+        public override void Visit(WindowAccessMethodNode node)
+        {
+            Nodes.Push(node);
         }
     }
 }

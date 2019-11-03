@@ -74,6 +74,9 @@
         When,
         Then,
         Else,
-        End
+        End,
+        Over,
+        Partition,
+        By
     }
 }

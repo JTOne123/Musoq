@@ -566,6 +566,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodNode node)
         {
+            VisitAccessMethod(node, () => (ArgumentListSyntax)Nodes.Pop());
+        }
+
+        private void VisitAccessMethod(AccessMethodNode node, Func<ArgumentListSyntax> argsProvider)
+        {
             var args = new List<ArgumentSyntax>();
 
             var parameters = node.Method.GetParameters().GetParametersWithAttribute<InjectTypeAttribute>();
@@ -636,7 +641,7 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.IdentifierName(nameof(IObjectResolver.Contexts))),
                                     SyntaxFactory.BracketedArgumentList(
                                         SyntaxFactory.SeparatedList(
-                                            new[] 
+                                            new[]
                                             {
                                                 SyntaxFactory.Argument(
                                                     SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(currentContext)))
@@ -664,7 +669,7 @@ namespace Musoq.Evaluator.Visitors
                 }
             }
 
-            var tmpArgs = (ArgumentListSyntax) Nodes.Pop();
+            var tmpArgs = argsProvider();
 
             for (var index = 0; index < tmpArgs.Arguments.Count; index++)
             {
@@ -679,7 +684,7 @@ namespace Musoq.Evaluator.Visitors
                 var genericArgs = node.Method.GetGenericArguments();
                 var syntaxArgs = new List<SyntaxNodeOrToken>();
 
-                for(int i = 0; i < genericArgs.Length - 1; ++i)
+                for (int i = 0; i < genericArgs.Length - 1; ++i)
                 {
                     syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName));
                     syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
@@ -729,6 +734,12 @@ namespace Musoq.Evaluator.Visitors
                 NullSuspiciousNodes.Push(accessMethodExpr);
 
             Nodes.Push(accessMethodExpr);
+        }
+
+
+        public void Visit(WindowAccessMethodNode node)
+        {
+            VisitAccessMethod(node.Method, () => ((InvocationExpressionSyntax)Nodes.Pop()).ArgumentList);
         }
 
         public void Visit(AccessRawIdentifierNode node)

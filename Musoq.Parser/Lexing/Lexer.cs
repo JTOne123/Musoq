@@ -134,6 +134,12 @@ namespace Musoq.Parser.Lexing
                     return TokenType.End;
                 case WordToken.EmptyTokenText:
                     return TokenType.Word;
+                case PartitionToken.TokenText:
+                    return TokenType.Partition;
+                case ByToken.TokenText:
+                    return TokenType.By;
+                case OverToken.TokenText:
+                    return TokenType.Over;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -166,7 +172,9 @@ namespace Musoq.Parser.Lexing
                 return TokenType.OrderBy;
             if (regex == TokenRegexDefinition.Function)
                 return TokenType.Function;
+
             var last = Current();
+
             if (regex == TokenRegexDefinition.KColumn && last != null && last.TokenType == TokenType.Dot)
                 return TokenType.Property;
             if (regex == TokenRegexDefinition.KColumn)
@@ -264,6 +272,9 @@ namespace Musoq.Parser.Lexing
             public static readonly string KThen = Format(Keyword, ThenToken.TokenText);
             public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
             public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
+            public static readonly string KOver = Format(Keyword, OverToken.TokenText);
+            public static readonly string KPartition = Format(Keyword, PartitionToken.TokenText);
+            public static readonly string KBy = Format(Keyword, ByToken.TokenText);
 
             private static string Format(string keyword, string arg)
             {
@@ -314,9 +325,12 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KOr),
                 new TokenDefinition(TokenRegexDefinition.KPlus),
                 new TokenDefinition(TokenRegexDefinition.KStar),
-                new TokenDefinition(TokenRegexDefinition.KIs),
-                new TokenDefinition(TokenRegexDefinition.KIn), 
-                new TokenDefinition(TokenRegexDefinition.KNull),
+                new TokenDefinition(TokenRegexDefinition.KIs, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KIn, RegexOptions.IgnoreCase), 
+                new TokenDefinition(TokenRegexDefinition.KNull, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KOver, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KPartition, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KBy, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
@@ -538,6 +552,12 @@ namespace Musoq.Parser.Lexing
                     return new ElseToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.End:
                     return new EndToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Over:
+                    return new OverToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Partition:
+                    return new PartitionToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.By:
+                    return new ByToken(new TextSpan(Position, tokenText.Length));
             }
 
             var regex = matchedDefinition.Regex.ToString();

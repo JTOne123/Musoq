@@ -721,7 +721,20 @@ namespace Musoq.Parser
                     ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
                     return ComposeAccessMethod(string.Empty);
                 case TokenType.Function:
-                    return ComposeAccessMethod(string.Empty);
+                    var accessMethod = ComposeAccessMethod(string.Empty);
+                    if (Current.TokenType != TokenType.Over)
+                        return accessMethod;
+
+                    Consume(TokenType.Over);
+                    Consume(TokenType.LeftParenthesis);
+                    Consume(TokenType.Partition);
+                    Consume(TokenType.By);
+
+                    var fields = ComposeFields();
+
+                    Consume(TokenType.RightParenthesis);
+
+                    return new WindowAccessMethodNode(accessMethod, fields);
                 case TokenType.Identifier:
 
                     if (!(Current is ColumnToken column))
@@ -742,7 +755,20 @@ namespace Musoq.Parser
                     var methodAccess = (MethodAccessToken) Current;
                     Consume(TokenType.MethodAccess);
                     Consume(TokenType.Dot);
-                    return ComposeAccessMethod(methodAccess.Alias);
+                    accessMethod = ComposeAccessMethod(methodAccess.Alias);
+                    if (Current.TokenType != TokenType.Over)
+                        return accessMethod;
+
+                    Consume(TokenType.Over);
+                    Consume(TokenType.LeftParenthesis);
+                    Consume(TokenType.Partition);
+                    Consume(TokenType.By);
+
+                    fields = ComposeFields();
+
+                    Consume(TokenType.RightParenthesis);
+
+                    return new WindowAccessMethodNode(accessMethod, fields); 
                 case TokenType.Property:
                     token = ConsumeAndGetToken(TokenType.Property);
                     return new PropertyValueNode(token.Value);

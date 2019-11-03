@@ -229,6 +229,17 @@ namespace Musoq.Evaluator.Visitors
             VisitAccessMethod(node);
         }
 
+        public virtual void Visit(WindowAccessMethodNode node)
+        {
+            var participans = new List<FieldNode>();
+            for (int i = 0; i < node.PartitionParticipants.Length; ++i)
+            {
+                participans.Add((FieldNode)Nodes.Pop());
+            }
+
+            Nodes.Push(new WindowAccessMethodNode(node.Method, participans.ToArray()));
+        }
+
         public void Visit(AccessRawIdentifierNode node)
         {
             Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
@@ -913,7 +924,7 @@ namespace Musoq.Evaluator.Visitors
                     continue;
 
                 var rewriter = new RewriteFieldWithGroupMethodCall(groupByFields);
-                var traverser = new CloneTraverseVisitor(rewriter);
+                var traverser = new RewriteFieldWithGroupMethodCallTraverseVisitor(rewriter);
 
                 root.Accept(traverser);
 

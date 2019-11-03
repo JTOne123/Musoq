@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -214,6 +213,17 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(AccessMethodNode node)
         {
             Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
+        }
+
+        public virtual void Visit(WindowAccessMethodNode node)
+        {
+            var participans = new List<FieldNode>();
+            for (int i = 0; i < node.PartitionParticipants.Length; ++i)
+            {
+                participans.Add((FieldNode)Nodes.Pop());
+            }
+
+            Nodes.Push(new WindowAccessMethodNode(node.Method, participans.ToArray()));
         }
 
         public void Visit(AccessRawIdentifierNode node)
